@@ -10,7 +10,7 @@
 # import math
 # import numpy as np
 import rospy
-from std_msgs.msg import Int8
+from std_msgs.msg import Int8, String
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image
 
@@ -48,6 +48,7 @@ class TelloROSDriver(object):
         
         self._img_pub = rospy.Publisher('image_raw', Image, queue_size=10)
         self._cmd_vel_sub = rospy.Subscriber('cmd_vel', Twist, self._cmd_vel_sub_cb)
+        self._keys_sub = rospy.Subscriber('keys', String, self._keys_cb)
         self._mode_sub = rospy.Subscriber('mode', Int8, self._mode_sub_cb)
 
         # start a thread that constantly pools the video sensor for
@@ -88,6 +89,13 @@ class TelloROSDriver(object):
 
     def _cmd_vel_sub_cb(self, msg):
         self._cmd_vel = msg
+
+    def _keys_cb(self, msg):
+        print(msg.data)
+
+    def on_keypress_right(self, event):
+        print "right %d m" % self.distance
+        self.telloMoveRight(self.distance)
 
     def _mode_sub_cb(self, msg):
 
@@ -181,6 +189,11 @@ def main():
     tello = Tello('', 8889) 
 
     rospy.init_node('tello_control')
+
+    # Main loop of tello_control_ui
+    # vplayer = TelloUI(tello,"./img/")
+    # vplayer.root.mainloop() 
+    
     node = TelloROSDriver(tello)
     node.spin()
 
