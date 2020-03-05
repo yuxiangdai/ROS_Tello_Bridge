@@ -26,6 +26,8 @@ from protocol import *
 LOOP_FREQ = 20
 LOOP_DT = 0.05
 
+DISTANCE = 0.2
+ANGLE = 90
 
 class Mode(object):
     LANDED = 0
@@ -49,8 +51,8 @@ class TelloROSDriver(object):
         self._mode_sub = rospy.Subscriber('mode', Int8, self._mode_sub_cb)
          
         # Control Variables
-        self.distance = 0.1  # default distance for 'move' cmd
-        self.degree = 90  # default degree for 'cw' or 'ccw' cmd
+        self.distance = DISTANCE  # default distance for 'move' cmd
+        self.degree = ANGLE  # default degree for 'cw' or 'ccw' cmd
 
         # Create subscribers 
         self._keys_sub = rospy.Subscriber('keys', String, self._keys_cb)
@@ -112,9 +114,12 @@ class TelloROSDriver(object):
         elif action == "backward":
             self.telloMoveBackward(self.distance)
         elif action == "left":
-            self.telloMoveLeft(self.distance)
+            # Modified Left/Right so that Tello faces direction its going
+            self.telloCCW(self.degree)
+            self.telloMoveForward(self.distance)
         elif action == "right":
-            self.telloMoveRight(self.distance)
+            self.telloCW(self.degree)
+            self.telloMoveForward(self.distance)
         elif action == "ccw":
             self.telloCCW(self.degree)
         elif action == "cw":
