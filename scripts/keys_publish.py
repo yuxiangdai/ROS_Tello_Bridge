@@ -1,11 +1,17 @@
 #!/usr/bin/env python
+# encoding: UTF-8
+# date: March 4, 2020
+# author: Yuxiang Dai
+# description: Publish keystrokes to ROS topic
+
 # BEGIN ALL
 import sys, select, tty, termios
 import rospy
 from std_msgs.msg import String
 
 if __name__ == '__main__':
-  key_pub = rospy.Publisher('tello/keys', String, queue_size=1)
+  TOPIC_NAME = 'tello/keys'
+  key_pub = rospy.Publisher(TOPIC_NAME, String, queue_size=1)
   rospy.init_node("keyboard_driver")
   rate = rospy.Rate(100)
   # BEGIN TERMIOS

@@ -1,11 +1,8 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-# tello_control.py
-#
-# Created on: Dec 16, 2018
-#     Author: Yu Okamoto
-# Brief: tello ros driver using dji-sdk
+# encoding: UTF-8
+# date: March 4, 2020
+# author: Yuxiang Dai
+# description: Tello ROS interface using Tello-Python official DJI SDK
 
 # import math
 # import numpy as np
@@ -48,8 +45,18 @@ class TelloROSDriver(object):
         
         self._img_pub = rospy.Publisher('image_raw', Image, queue_size=10)
         self._cmd_vel_sub = rospy.Subscriber('cmd_vel', Twist, self._cmd_vel_sub_cb)
-        self._keys_sub = rospy.Subscriber('keys', String, self._keys_cb)
+       
         self._mode_sub = rospy.Subscriber('mode', Int8, self._mode_sub_cb)
+         
+        # Control Variables
+        self.distance = 0.1  # default distance for 'move' cmd
+        self.degree = 90  # default degree for 'cw' or 'ccw' cmd
+
+        # Create subscribers 
+        self._keys_sub = rospy.Subscriber('keys', String, self._keys_cb)
+       
+        # Subscriber for commands
+        self._command_sub = rospy.Subscriber('command', String, self._command_sub_cb)
 
         # start a thread that constantly pools the video sensor for
         # the most recently read frame
@@ -93,9 +100,27 @@ class TelloROSDriver(object):
     def _keys_cb(self, msg):
         print(msg.data)
 
-    def on_keypress_right(self, event):
-        print "right %d m" % self.distance
-        self.telloMoveRight(self.distance)
+    def _command_sub_cb(self, msg):
+        action = msg.data
+        print "%s %0.2f m, %d degrees" % (action, self.distance, self.degree)
+        if action == "takeoff":
+            self.telloTakeOff()
+        elif action == "land":
+            self.telloLanding()
+        elif action == "forward":
+            self.telloMoveForward(self.distance)
+        elif action == "backward":
+            self.telloMoveBackward(self.distance)
+        elif action == "left":
+            self.telloMoveLeft(self.distance)
+        elif action == "right":
+            self.telloMoveRight(self.distance)
+        elif action == "ccw":
+            self.telloCCW(self.degree)
+        elif action == "cw":
+            self.telloCW(self.degree)
+        else:
+            print "No matching action"
 
     def _mode_sub_cb(self, msg):
 
@@ -106,6 +131,106 @@ class TelloROSDriver(object):
             self._tello.land()
         elif self._mode == Mode.FLYING:
             self._tello.takeoff()
+
+    ### Keyboard logic
+    def on_keypress_right(self, event):
+        # distance * 100 cm
+        print "right %d m" % self.distance
+        self.telloMoveRight(self.distance)
+
+    def on_keypress_w(self, event):
+        print "up %d m" % self.distance
+        self.telloUp(self.distance)
+
+    def on_keypress_s(self, event):
+        print "down %d m" % self.distance
+        self.telloDown(self.distance)
+
+    def on_keypress_a(self, event):
+        print "ccw %d degree" % self.degree
+        self._tello.rotate_ccw(self.degree)
+
+    def on_keypress_d(self, event):
+        print "cw %d m" % self.degree
+        self._tello.rotate_cw(self.degree)
+
+    def on_keypress_up(self, event):
+        print "forward %d m" % self.distance
+        self.telloMoveForward(self.distance)
+
+    def on_keypress_down(self, event):
+        print "backward %d m" % self.distance
+        self.telloMoveBackward(self.distance)
+
+    def on_keypress_left(self, event):
+        print "left %d m" % self.distance
+        self.telloMoveLeft(self.distance)
+
+    def on_keypress_right(self, event):
+        print "right %d m" % self.distance
+        self.telloMoveRight(self.distance)
+
+    ### Tello Movement logic
+    def telloTakeOff(self):
+        """
+        send the takeoff command to tello,and wait for the first response,
+        
+        if get the 'error'response,remind the "battery low" warning.Otherwise,
+        
+        start the auto-takeoff thread
+        """
+        takeoff_response = None
+
+        self._tello.takeoff()
+        time.sleep(0.2)
+
+        takeoff_response = self._tello.get_response()
+
+        if takeoff_response != 'error':
+            self.auto_takeoff_thread.start()       
+        else:
+            print "battery low,please repalce with a new one"                          
+
+
+    def telloLanding(self):
+        return self._tello.land()
+
+    # def telloFlip_l(self):
+    #     return self._tello.flip('l')
+
+    # def telloFlip_r(self):
+    #     return self._tello.flip('r')
+
+    # def telloFlip_f(self):
+    #     return self._tello.flip('f')
+
+    # def telloFlip_b(self):
+    #     return self._tello.flip('b')
+
+    def telloCW(self, degree):
+        return self._tello.rotate_cw(degree)
+
+    def telloCCW(self, degree):
+        return self._tello.rotate_ccw(degree)
+
+    def telloMoveForward(self, distance):
+        return self._tello.move_forward(distance)
+
+    def telloMoveBackward(self, distance):
+        return self._tello.move_backward(distance)
+
+    def telloMoveLeft(self, distance):
+        return self._tello.move_left(distance)
+
+    def telloMoveRight(self, distance):
+        # distance * 100 cm
+        return self._tello.move_right(distance)
+
+    def telloUp(self, dist):
+        return self._tello.move_up(dist)
+
+    def telloDown(self, dist):
+        return self._tello.move_down(dist)
 
     def send_packet(self, pkt):
         """Send_packet is used to send a command packet to the drone."""
