@@ -1,14 +1,30 @@
-# ros_tello
-ROS Tello driver
-include Dockerfile for tello using https://github.com/anqixu/tello_driver
+# ROS_Tello
+ROS Tello driver 
+Goal: for use with keyboard teleop and ROStopic command
 
-### in progress
-- test official SDK https://github.com/dji-sdk/Tello-Python: `ros_tello.py` has interface to `cmd_vel`, `takeoff` and `land`
+Fork of https://github.com/yuokamoto/ros_tello
 
-### todo
-- stabilize image
-- add state publisher to driver
-- Update docker related files
+To Run: 
+```
+./setup.sh
+catkin build
+roslaunch ros_tello tello.launch
+```
 
-### Contact Info
-Author: Yu Okamoto \<<yuokamoto1988@gmail.com>\>
+# Ros Topics
+## tello/keys
+Keyboard operations (WASD, Up/Down, Left/Right)
+
+## tello/command
+A command from the list below
+
+```python
+takeoff
+land
+forward
+backward
+left
+right
+ccw
+cw
+```

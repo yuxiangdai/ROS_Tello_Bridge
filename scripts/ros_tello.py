@@ -172,25 +172,8 @@ class TelloROSDriver(object):
 
     ### Tello Movement logic
     def telloTakeOff(self):
-        """
-        send the takeoff command to tello,and wait for the first response,
-        
-        if get the 'error'response,remind the "battery low" warning.Otherwise,
-        
-        start the auto-takeoff thread
-        """
-        takeoff_response = None
-
-        self._tello.takeoff()
-        time.sleep(0.2)
-
-        takeoff_response = self._tello.get_response()
-
-        if takeoff_response != 'error':
-            self.auto_takeoff_thread.start()       
-        else:
-            print "battery low,please repalce with a new one"                          
-
+        return self._tello.takeoff()
+                               
 
     def telloLanding(self):
         return self._tello.land()
