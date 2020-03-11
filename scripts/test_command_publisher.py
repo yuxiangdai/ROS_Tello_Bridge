@@ -13,7 +13,7 @@ if __name__ == '__main__':
     rospy.init_node("command_pub")
     rospy.sleep(1.)
 
-    cmds = ["takeoff", "cw", "land"]
+    cmds = ["takeoff", "ccw", "cw", "land"]
 
     key_pub.publish(cmds[0])
     print(cmds[0])

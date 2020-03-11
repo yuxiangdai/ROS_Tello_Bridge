@@ -27,7 +27,7 @@ LOOP_FREQ = 20
 LOOP_DT = 0.05
 
 DISTANCE = 0.2
-ANGLE = 90
+ANGLE = 45
 
 class Mode(object):
     LANDED = 0
@@ -284,7 +284,7 @@ class TelloROSDriver(object):
         while not rospy.is_shutdown():
             if count > 100:
                 count = 0
-                self._tello.send_command('command')  
+                # self._tello.send_command('command')  
             if self._mode == Mode.FLYING:
                 cmd = self._cmd_vel    
                 self.__send_stick_command(cmd)
